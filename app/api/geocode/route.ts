@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const GEOCODE_URL = "https://api.vworld.kr/req/address";
+const GEOCODE_URLS = ["https://api.vworld.kr/req/address", "http://api.vworld.kr/req/address"];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -63,21 +63,30 @@ export async function GET(request: Request) {
 }
 
 async function requestVworld(params: URLSearchParams) {
-  let response: Response;
+  let lastError = "VWorld API 호출에 실패했습니다.";
 
-  try {
-    response = await fetch(`${GEOCODE_URL}?${params.toString()}`, {
-      cache: "no-store",
-    });
-  } catch (error) {
-    return {
-      response: {
-        status: "FETCH_ERROR",
-        error: error instanceof Error ? error.message : "VWorld API 호출에 실패했습니다.",
-      },
-    };
+  for (const geocodeUrl of GEOCODE_URLS) {
+    try {
+      const response = await fetch(`${geocodeUrl}?${params.toString()}`, {
+        cache: "no-store",
+      });
+
+      return parseVworldResponse(response);
+    } catch (error) {
+      const cause = error instanceof Error && "cause" in error ? String(error.cause) : "";
+      lastError = [error instanceof Error ? error.message : "fetch failed", cause].filter(Boolean).join(" / ");
+    }
   }
 
+  return {
+    response: {
+      status: "FETCH_ERROR",
+      error: lastError,
+    },
+  };
+}
+
+async function parseVworldResponse(response: Response) {
   const text = await response.text();
 
   if (!text) {
