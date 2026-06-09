@@ -62,14 +62,14 @@ export function ProductGrid({ products }: ProductGridProps) {
 
     try {
       const geocodeResponse = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
-      const geocode = await geocodeResponse.json();
+      const geocode = await readJsonResponse(geocodeResponse);
 
       if (!geocodeResponse.ok) {
         throw new Error(geocode.error ?? "주소 검색에 실패했습니다.");
       }
 
       const hardinessResponse = await fetch(`/api/hardiness?lat=${geocode.lat}&lng=${geocode.lng}`);
-      const hardiness = await hardinessResponse.json();
+      const hardiness = await readJsonResponse(hardinessResponse);
 
       if (!hardinessResponse.ok) {
         throw new Error(hardiness.error ?? "내한성 값을 찾지 못했습니다.");
@@ -174,4 +174,22 @@ export function ProductGrid({ products }: ProductGridProps) {
       </section>
     </>
   );
+}
+
+async function readJsonResponse(response: Response) {
+  const text = await response.text();
+
+  if (!text) {
+    return {
+      error: "서버 응답이 비어 있습니다.",
+    };
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      error: text,
+    };
+  }
 }

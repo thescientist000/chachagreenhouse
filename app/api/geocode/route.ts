@@ -58,11 +58,31 @@ export async function GET(request: Request) {
 }
 
 async function requestVworld(params: URLSearchParams) {
-  const response = await fetch(`${GEOCODE_URL}?${params.toString()}`, {
-    cache: "no-store",
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${GEOCODE_URL}?${params.toString()}`, {
+      cache: "no-store",
+    });
+  } catch (error) {
+    return {
+      response: {
+        status: "FETCH_ERROR",
+        error: error instanceof Error ? error.message : "VWorld API 호출에 실패했습니다.",
+      },
+    };
+  }
 
   const text = await response.text();
+
+  if (!text) {
+    return {
+      response: {
+        status: "EMPTY_RESPONSE",
+        error: "VWorld API 응답이 비어 있습니다.",
+      },
+    };
+  }
 
   try {
     return JSON.parse(text);
