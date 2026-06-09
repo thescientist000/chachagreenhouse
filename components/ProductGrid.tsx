@@ -65,14 +65,14 @@ export function ProductGrid({ products }: ProductGridProps) {
       const geocode = await readJsonResponse(geocodeResponse);
 
       if (!geocodeResponse.ok) {
-        throw new Error(geocode.error ?? "주소 검색에 실패했습니다.");
+        throw new Error(formatApiError(geocode, "주소 검색에 실패했습니다."));
       }
 
       const hardinessResponse = await fetch(`/api/hardiness?lat=${geocode.lat}&lng=${geocode.lng}`);
       const hardiness = await readJsonResponse(hardinessResponse);
 
       if (!hardinessResponse.ok) {
-        throw new Error(hardiness.error ?? "내한성 값을 찾지 못했습니다.");
+        throw new Error(formatApiError(hardiness, "내한성 값을 찾지 못했습니다."));
       }
 
       const nextRegion: Region = {
@@ -192,4 +192,19 @@ async function readJsonResponse(response: Response) {
       error: text,
     };
   }
+}
+
+function formatApiError(data: any, fallback: string) {
+  const parts = [data?.error ?? fallback];
+
+  if (data?.status) {
+    parts.push(`상태: ${data.status}`);
+  }
+
+  if (data?.detail) {
+    const detail = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
+    parts.push(`상세: ${detail}`);
+  }
+
+  return parts.join(" / ");
 }

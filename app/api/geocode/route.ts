@@ -24,22 +24,27 @@ export async function GET(request: Request) {
     type: "road",
     address,
     format: "json",
+    errorFormat: "json",
     key: apiKey,
   });
 
   let data = await requestVworld(params);
+  let lastStatus = data?.response?.status;
+  let lastDetail = data?.response?.error ?? data;
 
   if (!isSuccessful(data)) {
     params.set("type", "parcel");
     data = await requestVworld(params);
+    lastStatus = data?.response?.status ?? lastStatus;
+    lastDetail = data?.response?.error ?? data ?? lastDetail;
   }
 
   if (!isSuccessful(data)) {
     return NextResponse.json(
       {
         error: "주소 검색에 실패했습니다.",
-        status: data?.response?.status ?? "UNKNOWN",
-        detail: data?.response?.error ?? data,
+        status: lastStatus ?? "UNKNOWN",
+        detail: lastDetail,
       },
       { status: 404 },
     );
