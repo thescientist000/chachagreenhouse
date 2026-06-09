@@ -1,0 +1,177 @@
+"use client";
+
+import { FormEvent, useMemo, useState } from "react";
+import type { Product } from "@/lib/products";
+import { categories, getProductImage } from "@/lib/products";
+import { getFitLabel, getFitStatus, type FitStatus } from "@/lib/hardiness";
+
+type Region = {
+  address: string;
+  lat: number;
+  lng: number;
+  hardinessC: number;
+};
+
+type ProductGridProps = {
+  products: Product[];
+};
+
+const statusClass: Record<FitStatus, string> = {
+  available: "fit-good",
+  caution: "fit-caution",
+  hard: "fit-hard",
+  indoor: "fit-neutral",
+  excluded: "fit-muted",
+  unknown: "fit-muted",
+};
+
+export function ProductGrid({ products }: ProductGridProps) {
+  const [activeCategory, setActiveCategory] = useState("전체");
+  const [query, setQuery] = useState("");
+  const [address, setAddress] = useState("");
+  const [region, setRegion] = useState<Region | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    const saved = window.localStorage.getItem("chacha-region");
+    return saved ? (JSON.parse(saved) as Region) : null;
+  });
+  const [regionStatus, setRegionStatus] = useState("");
+
+  const filteredProducts = useMemo(() => {
+    const keyword = query.trim().toLowerCase();
+
+    return products.filter((product) => {
+      const categoryMatch = activeCategory === "전체" || product.category === activeCategory;
+      const queryMatch = !keyword || product.name.toLowerCase().includes(keyword);
+
+      return categoryMatch && queryMatch;
+    });
+  }, [activeCategory, products, query]);
+
+  async function handleRegionSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!address.trim()) {
+      setRegionStatus("주소를 입력해 주세요.");
+      return;
+    }
+
+    setRegionStatus("주소를 확인하는 중입니다.");
+
+    try {
+      const geocodeResponse = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
+      const geocode = await geocodeResponse.json();
+
+      if (!geocodeResponse.ok) {
+        throw new Error(geocode.error ?? "주소 검색에 실패했습니다.");
+      }
+
+      const hardinessResponse = await fetch(`/api/hardiness?lat=${geocode.lat}&lng=${geocode.lng}`);
+      const hardiness = await hardinessResponse.json();
+
+      if (!hardinessResponse.ok) {
+        throw new Error(hardiness.error ?? "내한성 값을 찾지 못했습니다.");
+      }
+
+      const nextRegion: Region = {
+        address: geocode.address,
+        lat: geocode.lat,
+        lng: geocode.lng,
+        hardinessC: hardiness.valueC,
+      };
+
+      setRegion(nextRegion);
+      window.localStorage.setItem("chacha-region", JSON.stringify(nextRegion));
+      setRegionStatus("내 재배 지역이 설정되었습니다.");
+    } catch (error) {
+      setRegionStatus(error instanceof Error ? error.message : "주소 설정에 실패했습니다.");
+    }
+  }
+
+  return (
+    <>
+      <aside className="region-panel" aria-label="내 재배 지역">
+        <div>
+          <p className="panel-label">내 재배 지역</p>
+          {region ? (
+            <>
+              <strong>{region.address}</strong>
+              <span>지역 내한성 {region.hardinessC.toFixed(1)}°C</span>
+            </>
+          ) : (
+            <>
+              <strong>지역 미설정</strong>
+              <span>주소를 입력하면 적합도를 계산합니다.</span>
+            </>
+          )}
+        </div>
+        <form onSubmit={handleRegionSubmit}>
+          <input
+            value={address}
+            onChange={(event) => setAddress(event.target.value)}
+            placeholder="예: 전남 나주시 산포면"
+            aria-label="주소"
+          />
+          <button type="submit">설정</button>
+        </form>
+        {regionStatus ? <p className="panel-status">{regionStatus}</p> : null}
+      </aside>
+
+      <section className="shop-tools" aria-label="상품 검색과 필터">
+        <div className="category-row">
+          {categories.map((category) => (
+            <button
+              className={category === activeCategory ? "active" : ""}
+              key={category}
+              type="button"
+              onClick={() => setActiveCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+        <input
+          className="search-input"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="식물 이름 검색"
+          aria-label="식물 이름 검색"
+        />
+      </section>
+
+      <section className="product-grid" aria-label="상품 목록">
+        {filteredProducts.map((product) => {
+          const image = getProductImage(product);
+          const fitStatus = getFitStatus(product, region?.hardinessC);
+
+          return (
+            <article className="product-card" key={product.id}>
+              <div className="product-image">
+                {image ? <img src={image} alt={product.name} /> : <span>{product.category}</span>}
+              </div>
+              <div className="product-body">
+                <div className="product-meta">
+                  <span>{product.category}</span>
+                  <span>{product.seller}</span>
+                </div>
+                <h2>{product.name}</h2>
+                {product.spec ? <p className="spec">{product.spec}</p> : null}
+                <div className="product-bottom">
+                  <strong>{product.priceText}</strong>
+                  <span className={`fit-badge ${statusClass[fitStatus]}`}>{getFitLabel(fitStatus)}</span>
+                </div>
+                {typeof product.coldLimitC === "number" ? (
+                  <p className="hardiness-note">
+                    내한성 {product.hardinessZone}구역 · 약 {product.coldLimitC.toFixed(1)}°C
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </section>
+    </>
+  );
+}
