@@ -16,6 +16,25 @@ type ProductGridProps = {
   products: Product[];
 };
 
+type VworldResponse = {
+  response?: {
+    status?: string;
+    error?: {
+      code?: string;
+      text?: string;
+    };
+    refined?: {
+      text?: string;
+    };
+    result?: {
+      point?: {
+        x?: string;
+        y?: string;
+      };
+    };
+  };
+};
+
 const statusClass: Record<FitStatus, string> = {
   available: "fit-good",
   caution: "fit-caution",
@@ -61,12 +80,7 @@ export function ProductGrid({ products }: ProductGridProps) {
     setRegionStatus("주소를 확인하는 중입니다.");
 
     try {
-      const geocodeResponse = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
-      const geocode = await readJsonResponse(geocodeResponse);
-
-      if (!geocodeResponse.ok) {
-        throw new Error(formatApiError(geocode, "주소 검색에 실패했습니다."));
-      }
+      const geocode = await geocodeAddress(address);
 
       const hardinessResponse = await fetch(`/api/hardiness?lat=${geocode.lat}&lng=${geocode.lng}`);
       const hardiness = await readJsonResponse(hardinessResponse);
@@ -174,6 +188,91 @@ export function ProductGrid({ products }: ProductGridProps) {
       </section>
     </>
   );
+}
+
+async function geocodeAddress(address: string) {
+  const apiKey = process.env.NEXT_PUBLIC_VWORLD_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("VWorld API 키가 설정되지 않았습니다.");
+  }
+
+  const roadResult = await requestVworldJsonp(address, "road", apiKey);
+  const roadPoint = getVworldPoint(roadResult);
+
+  if (roadPoint) {
+    return roadPoint;
+  }
+
+  const parcelResult = await requestVworldJsonp(address, "parcel", apiKey);
+  const parcelPoint = getVworldPoint(parcelResult);
+
+  if (parcelPoint) {
+    return parcelPoint;
+  }
+
+  const error = parcelResult.response?.error ?? roadResult.response?.error;
+  const status = parcelResult.response?.status ?? roadResult.response?.status ?? "UNKNOWN";
+  const detail = error?.text ?? error?.code ?? "검색 결과가 없습니다.";
+
+  throw new Error(`주소 검색에 실패했습니다. / 상태: ${status} / 상세: ${detail}`);
+}
+
+function getVworldPoint(data: VworldResponse) {
+  const point = data.response?.result?.point;
+
+  if (data.response?.status !== "OK" || !point?.x || !point?.y) {
+    return null;
+  }
+
+  return {
+    address: data.response.refined?.text ?? "선택한 주소",
+    lat: Number(point.y),
+    lng: Number(point.x),
+  };
+}
+
+function requestVworldJsonp(address: string, type: "road" | "parcel", apiKey: string) {
+  const callbackName = `vworldCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const params = new URLSearchParams({
+    service: "address",
+    request: "getCoord",
+    version: "2.0",
+    crs: "epsg:4326",
+    type,
+    address,
+    format: "json",
+    errorFormat: "json",
+    callback: callbackName,
+    key: apiKey,
+  });
+
+  return new Promise<VworldResponse>((resolve, reject) => {
+    const script = document.createElement("script");
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("VWorld API 응답 시간이 초과되었습니다."));
+    }, 10000);
+
+    function cleanup() {
+      window.clearTimeout(timeout);
+      script.remove();
+      delete (window as any)[callbackName];
+    }
+
+    (window as any)[callbackName] = (data: VworldResponse) => {
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("VWorld API 스크립트 호출에 실패했습니다."));
+    };
+
+    script.src = `https://api.vworld.kr/req/address?${params.toString()}`;
+    document.body.appendChild(script);
+  });
 }
 
 async function readJsonResponse(response: Response) {
