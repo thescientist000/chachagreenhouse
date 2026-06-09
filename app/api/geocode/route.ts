@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const GEOCODE_URL = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode";
+const GEOCODE_URL = "https://api.vworld.kr/req/address";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,47 +10,72 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "주소를 입력해 주세요." }, { status: 400 });
   }
 
-  const clientId = process.env.NAVER_MAP_CLIENT_ID;
-  const clientSecret = process.env.NAVER_MAP_CLIENT_SECRET;
+  const apiKey = process.env.VWORLD_API_KEY;
 
-  if (!clientId || !clientSecret) {
-    return NextResponse.json({ error: "네이버 지도 API 키가 설정되지 않았습니다." }, { status: 500 });
+  if (!apiKey) {
+    return NextResponse.json({ error: "VWorld API 키가 설정되지 않았습니다." }, { status: 500 });
   }
 
-  const response = await fetch(`${GEOCODE_URL}?query=${encodeURIComponent(address)}`, {
-    headers: {
-      "x-ncp-apigw-api-key-id": clientId,
-      "x-ncp-apigw-api-key": clientSecret,
-      Accept: "application/json",
-    },
-    cache: "no-store",
+  const params = new URLSearchParams({
+    service: "address",
+    request: "getCoord",
+    version: "2.0",
+    crs: "epsg:4326",
+    type: "road",
+    address,
+    format: "json",
+    key: apiKey,
   });
 
-  if (!response.ok) {
-    const message = await response.text();
+  let data = await requestVworld(params);
 
+  if (!isSuccessful(data)) {
+    params.set("type", "parcel");
+    data = await requestVworld(params);
+  }
+
+  if (!isSuccessful(data)) {
     return NextResponse.json(
       {
         error: "주소 검색에 실패했습니다.",
-        status: response.status,
-        detail: message,
+        status: data?.response?.status ?? "UNKNOWN",
+        detail: data?.response?.error ?? data,
       },
-      { status: response.status },
+      { status: 404 },
     );
   }
 
-  const data = await response.json();
-  const first = data.addresses?.[0];
-
-  if (!first) {
-    return NextResponse.json({ error: "검색된 주소가 없습니다." }, { status: 404 });
-  }
+  const point = data.response.result.point;
+  const refinedAddress = data.response.refined?.text || address;
 
   return NextResponse.json({
-    address: first.roadAddress || first.jibunAddress || address,
-    roadAddress: first.roadAddress,
-    jibunAddress: first.jibunAddress,
-    lat: Number(first.y),
-    lng: Number(first.x),
+    address: refinedAddress,
+    roadAddress: data.response.refined?.structure?.level4LC || refinedAddress,
+    jibunAddress: refinedAddress,
+    lat: Number(point.y),
+    lng: Number(point.x),
   });
+}
+
+async function requestVworld(params: URLSearchParams) {
+  const response = await fetch(`${GEOCODE_URL}?${params.toString()}`, {
+    cache: "no-store",
+  });
+
+  const text = await response.text();
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      response: {
+        status: response.ok ? "PARSE_ERROR" : String(response.status),
+        error: text,
+      },
+    };
+  }
+}
+
+function isSuccessful(data: any) {
+  return data?.response?.status === "OK" && data?.response?.result?.point?.x && data?.response?.result?.point?.y;
 }
