@@ -44,6 +44,8 @@ const statusClass: Record<FitStatus, string> = {
   unknown: "fit-muted",
 };
 
+const outdoorFitCategories = new Set(["야생화/정원식물"]);
+
 export function ProductGrid({ products }: ProductGridProps) {
   const [activeCategory, setActiveCategory] = useState("전체");
   const [query, setQuery] = useState("");
@@ -159,6 +161,7 @@ export function ProductGrid({ products }: ProductGridProps) {
         {filteredProducts.map((product) => {
           const image = getProductImage(product);
           const fitStatus = getFitStatus(product, region?.hardinessC);
+          const showFit = outdoorFitCategories.has(product.category);
 
           return (
             <article className="product-card" key={product.id}>
@@ -174,9 +177,11 @@ export function ProductGrid({ products }: ProductGridProps) {
                 {product.spec ? <p className="spec">{product.spec}</p> : null}
                 <div className="product-bottom">
                   <strong>{product.priceText}</strong>
-                  <span className={`fit-badge ${statusClass[fitStatus]}`}>{getFitLabel(fitStatus)}</span>
+                  {showFit ? (
+                    <span className={`fit-badge ${statusClass[fitStatus]}`}>{getFitLabel(fitStatus)}</span>
+                  ) : null}
                 </div>
-                {typeof product.coldLimitC === "number" ? (
+                {showFit && typeof product.coldLimitC === "number" ? (
                   <p className="hardiness-note">
                     내한성 {product.hardinessZone}구역 · 약 {product.coldLimitC.toFixed(1)}°C
                   </p>
