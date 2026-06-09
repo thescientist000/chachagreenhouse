@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { AuthNav } from "@/components/AuthNav";
 
 export function Header() {
   return (
@@ -17,7 +16,6 @@ export function Header() {
         <Link href="/orders" className="nav-link">
           주문조회
         </Link>
-        <AuthNav />
       </nav>
     </header>
   );
