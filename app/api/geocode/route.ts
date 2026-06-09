@@ -27,7 +27,16 @@ export async function GET(request: Request) {
   });
 
   if (!response.ok) {
-    return NextResponse.json({ error: "주소 검색에 실패했습니다." }, { status: response.status });
+    const message = await response.text();
+
+    return NextResponse.json(
+      {
+        error: "주소 검색에 실패했습니다.",
+        status: response.status,
+        detail: message,
+      },
+      { status: response.status },
+    );
   }
 
   const data = await response.json();
