@@ -14,7 +14,7 @@ export type Product = {
   sourceText?: string;
 };
 
-export const categories = ["전체", "다육식물", "관엽식물", "야생화/정원식물", "동서양란", "화분자재류"];
+export const categories = ["야생화/정원식물", "전체", "다육식물", "관엽식물", "동서양란", "화분자재류"];
 
 export const products = (rawProducts as Product[]).map((product) => ({
   ...product,

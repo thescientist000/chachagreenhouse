@@ -148,8 +148,8 @@ p {
 .category-row button {
   display: grid;
   place-items: center;
-  gap: 12px;
-  min-height: 132px;
+  gap: 10px;
+  min-height: 112px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--card);
@@ -167,8 +167,8 @@ p {
 }
 
 .category-row svg {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   color: var(--ink);
   stroke: currentColor;
 }
@@ -406,7 +406,7 @@ p {
   }
 
   .category-row button {
-    min-height: 104px;
+    min-height: 92px;
   }
 
   .region-panel {

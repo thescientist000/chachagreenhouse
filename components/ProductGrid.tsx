@@ -57,7 +57,7 @@ const categoryIcons = {
 };
 
 export function ProductGrid({ products }: ProductGridProps) {
-  const [activeCategory, setActiveCategory] = useState("전체");
+  const [activeCategory, setActiveCategory] = useState("야생화/정원식물");
   const [query, setQuery] = useState("");
   const [address, setAddress] = useState("");
   const [region, setRegion] = useState<Region | null>(() => {
