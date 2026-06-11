@@ -14,7 +14,7 @@ export type Product = {
   sourceText?: string;
 };
 
-export const categories = ["야생화/정원식물", "전체", "다육식물", "관엽식물", "동서양란", "화분자재류"];
+export const categories = ["전체", "야생화/정원식물", "다육식물", "관엽식물", "동서양란", "화분자재류"];
 
 export const products = (rawProducts as Product[]).map((product) => ({
   ...product,
@@ -22,7 +22,11 @@ export const products = (rawProducts as Product[]).map((product) => ({
 }));
 
 export function getProductImage(product: Product) {
-  return product.image ? `/products/${product.image}` : null;
+  if (!product.image) {
+    return null;
+  }
+
+  return product.image.startsWith("http") ? product.image : `/products/${product.image}`;
 }
 
 function getDisplayName(product: Product) {
