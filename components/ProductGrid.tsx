@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { Flower2, Leaf, Package, Sprout, TreePalm } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { categories, getProductImage } from "@/lib/products";
 import { getFitLabel, getFitStatus, type FitStatus } from "@/lib/hardiness";
@@ -45,6 +46,15 @@ const statusClass: Record<FitStatus, string> = {
 };
 
 const outdoorFitCategories = new Set(["야생화/정원식물"]);
+
+const categoryIcons = {
+  전체: Leaf,
+  다육식물: Sprout,
+  관엽식물: TreePalm,
+  "야생화/정원식물": Flower2,
+  동서양란: Sprout,
+  화분자재류: Package,
+};
 
 export function ProductGrid({ products }: ProductGridProps) {
   const [activeCategory, setActiveCategory] = useState("전체");
@@ -144,6 +154,10 @@ export function ProductGrid({ products }: ProductGridProps) {
               type="button"
               onClick={() => setActiveCategory(category)}
             >
+              {(() => {
+                const Icon = categoryIcons[category as keyof typeof categoryIcons];
+                return Icon ? <Icon aria-hidden="true" strokeWidth={1.7} /> : null;
+              })()}
               {category}
             </button>
           ))}
