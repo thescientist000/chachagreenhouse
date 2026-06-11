@@ -2423,9 +2423,9 @@
     "spec": "10cm 포트묘",
     "hardinessZone": "6",
     "coldLimitC": -23.3,
-    "image": "images-wild/wild-garden-002.jpg",
+    "image": "images-wild/wild-garden-002-selected.jpg",
     "sourceText": "왜성 붓들레아 버터플라이 캔디 리틀루비/10cm 포트묘/10,000원",
-    "sourceImageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Distelfalter%2C_Vanessa_cardui_AUF_Schmetterlingsflieder%2C_Buddleja_davidii_1.JPG/960px-Distelfalter%2C_Vanessa_cardui_AUF_Schmetterlingsflieder%2C_Buddleja_davidii_1.JPG"
+    "sourceImageUrl": "https://www.leaderplant.com/media/catalog/product/b/u/buddleja_butterfly_candy_little_ruby_leaderplant_2__2.jpg"
   },
   {
     "id": "wild-garden-003",
@@ -2437,9 +2437,9 @@
     "spec": "3년생 포트묘",
     "hardinessZone": "5",
     "coldLimitC": -28.9,
-    "image": "https://loremflickr.com/700/700/rose,flower?lock=413",
+    "image": "images-wild/wild-garden-003-selected.jpg",
     "sourceText": "유럽 사계 관목장미 헤르초긴크리스티아나/3년생 포트묘/22,000원",
-    "sourceImageUrl": "https://loremflickr.com/700/700/rose,flower?lock=413"
+    "sourceImageUrl": "https://roses-name.com/wp-content/uploads/Herzogin_Christiana_I_06-500x500.jpg"
   },
   {
     "id": "wild-garden-004",
@@ -2507,9 +2507,9 @@
     "spec": "4치 포트묘",
     "hardinessZone": "4~9",
     "coldLimitC": -34.4,
-    "image": "images-wild/wild-garden-008.jpg",
+    "image": "images-wild/wild-garden-008-selected.jpg",
     "sourceText": "밥티시아 바닐라크림/4치 포트묘/6,000원",
-    "sourceImageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Baptisia_bracteata_leucophaea.jpg/960px-Baptisia_bracteata_leucophaea.jpg"
+    "sourceImageUrl": "https://www.provenwinners.com/sites/provenwinners.com/files/imagecache/500x500/ifa_upload/baptisia_vanilla_cream_ii.jpg"
   },
   {
     "id": "wild-garden-009",
@@ -2675,9 +2675,9 @@
     "spec": "포트묘 접목 2년생 개화주",
     "hardinessZone": "5",
     "coldLimitC": -28.9,
-    "image": "https://loremflickr.com/700/700/rose,flower?lock=430",
+    "image": "images-wild/wild-garden-020-selected.jpg",
     "sourceText": "데이비드오스틴 장미 가브리엘오크/포트묘 접목 2년생 개화주/40,000원",
-    "sourceImageUrl": "https://loremflickr.com/700/700/rose,flower?lock=430"
+    "sourceImageUrl": "https://www.davidaustinroses.com/cdn/shop/files/ad4718bb013b224ba35e2958d9c46759.jpg?v=1692009470&width=1039"
   },
   {
     "id": "wild-garden-021",
