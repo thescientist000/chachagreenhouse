@@ -1,4 +1,5 @@
 import type { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 import NaverProvider from "next-auth/providers/naver";
 
 export const authOptions: NextAuthOptions = {
@@ -6,6 +7,10 @@ export const authOptions: NextAuthOptions = {
     NaverProvider({
       clientId: process.env.NAVER_CLIENT_ID ?? "",
       clientSecret: process.env.NAVER_CLIENT_SECRET ?? "",
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
     }),
   ],
   pages: {

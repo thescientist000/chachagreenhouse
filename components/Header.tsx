@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
-import { startNaverLogin } from "@/lib/naver-login";
+import { startGoogleLogin, startNaverLogin } from "@/lib/naver-login";
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -18,6 +18,16 @@ export function Header() {
     } catch (error) {
       setIsSigningIn(false);
       alert(error instanceof Error ? error.message : "네이버 로그인을 시작하지 못했습니다.");
+    }
+  }
+
+  async function handleGoogleLogin() {
+    try {
+      setIsSigningIn(true);
+      await startGoogleLogin("/mypage");
+    } catch (error) {
+      setIsSigningIn(false);
+      alert(error instanceof Error ? error.message : "구글 로그인을 시작하지 못했습니다.");
     }
   }
 
@@ -39,14 +49,24 @@ export function Header() {
             </button>
           </>
         ) : (
-          <button
-            type="button"
-            className="nav-link"
-            disabled={isLoading}
-            onClick={handleNaverLogin}
-          >
-            {isSigningIn ? "로그인 이동 중" : "네이버 로그인"}
-          </button>
+          <>
+            <button
+              type="button"
+              className="nav-link"
+              disabled={isLoading}
+              onClick={handleNaverLogin}
+            >
+              {isSigningIn ? "로그인 이동 중" : "네이버 로그인"}
+            </button>
+            <button
+              type="button"
+              className="nav-link"
+              disabled={isLoading}
+              onClick={handleGoogleLogin}
+            >
+              구글 로그인
+            </button>
+          </>
         )}
         <Link href="/cart" className="nav-link">
           장바구니

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
-import { startNaverLogin } from "@/lib/naver-login";
+import { startGoogleLogin, startNaverLogin } from "@/lib/naver-login";
 
 export default function MyPage() {
   const { data: session, status } = useSession();
@@ -15,6 +15,16 @@ export default function MyPage() {
     } catch (error) {
       setIsSigningIn(false);
       alert(error instanceof Error ? error.message : "네이버 로그인을 시작하지 못했습니다.");
+    }
+  }
+
+  async function handleGoogleLogin() {
+    try {
+      setIsSigningIn(true);
+      await startGoogleLogin("/mypage");
+    } catch (error) {
+      setIsSigningIn(false);
+      alert(error instanceof Error ? error.message : "구글 로그인을 시작하지 못했습니다.");
     }
   }
 
@@ -32,14 +42,24 @@ export default function MyPage() {
       <main className="page-shell compact auth-page">
         <h1>마이페이지</h1>
         <p>네이버 로그인 후 주소 설정과 주문 정보를 확인할 수 있습니다.</p>
-        <button
-          type="button"
-          className="primary-action"
-          disabled={isSigningIn}
-          onClick={handleNaverLogin}
-        >
-          {isSigningIn ? "로그인 이동 중" : "네이버로 로그인"}
-        </button>
+        <div className="auth-actions">
+          <button
+            type="button"
+            className="primary-action"
+            disabled={isSigningIn}
+            onClick={handleNaverLogin}
+          >
+            {isSigningIn ? "로그인 이동 중" : "네이버로 로그인"}
+          </button>
+          <button
+            type="button"
+            className="secondary-action"
+            disabled={isSigningIn}
+            onClick={handleGoogleLogin}
+          >
+            구글로 로그인
+          </button>
+        </div>
       </main>
     );
   }
