@@ -1,12 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useState } from "react";
+import { signOut, useSession } from "next-auth/react";
+import { startNaverLogin } from "@/lib/naver-login";
 
 export function Header() {
   const { data: session, status } = useSession();
-  const isLoading = status === "loading";
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const isLoading = status === "loading" || isSigningIn;
   const userName = session?.user?.name ?? "회원";
+
+  async function handleNaverLogin() {
+    try {
+      setIsSigningIn(true);
+      await startNaverLogin("/mypage");
+    } catch (error) {
+      setIsSigningIn(false);
+      alert(error instanceof Error ? error.message : "네이버 로그인을 시작하지 못했습니다.");
+    }
+  }
 
   return (
     <header className="site-header">
@@ -30,9 +43,9 @@ export function Header() {
             type="button"
             className="nav-link"
             disabled={isLoading}
-            onClick={() => signIn("naver", { callbackUrl: "/mypage" })}
+            onClick={handleNaverLogin}
           >
-            네이버 로그인
+            {isSigningIn ? "로그인 이동 중" : "네이버 로그인"}
           </button>
         )}
         <Link href="/cart" className="nav-link">

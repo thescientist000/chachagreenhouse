@@ -1,9 +1,22 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useState } from "react";
+import { signOut, useSession } from "next-auth/react";
+import { startNaverLogin } from "@/lib/naver-login";
 
 export default function MyPage() {
   const { data: session, status } = useSession();
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  async function handleNaverLogin() {
+    try {
+      setIsSigningIn(true);
+      await startNaverLogin("/mypage");
+    } catch (error) {
+      setIsSigningIn(false);
+      alert(error instanceof Error ? error.message : "네이버 로그인을 시작하지 못했습니다.");
+    }
+  }
 
   if (status === "loading") {
     return (
@@ -22,9 +35,10 @@ export default function MyPage() {
         <button
           type="button"
           className="primary-action"
-          onClick={() => signIn("naver", { callbackUrl: "/mypage" })}
+          disabled={isSigningIn}
+          onClick={handleNaverLogin}
         >
-          네이버로 로그인
+          {isSigningIn ? "로그인 이동 중" : "네이버로 로그인"}
         </button>
       </main>
     );
