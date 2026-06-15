@@ -33,5 +33,9 @@ export async function startNaverLogin(callbackUrl = "/mypage") {
     throw new Error("네이버 로그인 주소를 받지 못했습니다.");
   }
 
+  if (data.url.includes("/api/auth/error")) {
+    throw new Error("네이버 로그인 설정을 확인해야 합니다. Client ID, Client Secret, Callback URL을 다시 확인해 주세요.");
+  }
+
   window.location.assign(data.url);
 }
